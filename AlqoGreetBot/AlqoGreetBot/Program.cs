@@ -9,6 +9,8 @@
     using System;
     using System.Reflection;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using System.Linq;
 
     class Program
     {
@@ -17,6 +19,8 @@
         private DiscordSocketClient Client { get; set; }
         private CommandService Commands { get; set; }
         private IServiceProvider Services { get; set; }
+        private List<SocketGuildUser> TeamMembers { get; set; }
+        private SocketGuild DesignatedGuild { get; set; }
 
         public async Task RunBotAsync()
         {
@@ -38,19 +42,20 @@
 
             await this.Client.StartAsync();
 
+            this.DesignatedGuild = this.Client.GetGuild(372413418399072256); //alqo guild id
+
+            this.TeamMembers = this.DesignatedGuild.Users
+                .Where(u => u.Roles.Any(r => r.Name.Equals("founder") || r.Name.Equals("enthusiast")))
+                .ToList();
+
             await Task.Delay(-1);
         }
 
         private async Task HandleUserUpdated(SocketUser oldUser, SocketUser newUser)
         {
-            if (newUser.Username == "yannick")
+            if (this.TeamMembers.Any(m => m.Nickname == newUser.Username))
             {
-                var guild = this.Client.GetGuild(372413418399072256); //alqo guild id
-                
-                if (guild != null)
-                {
-                    await guild.AddBanAsync(newUser);
-                }
+                await this.DesignatedGuild.AddBanAsync(newUser);
             }
         }
 
