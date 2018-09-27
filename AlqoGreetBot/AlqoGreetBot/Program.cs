@@ -20,6 +20,7 @@
         private CommandService Commands { get; set; }
         private IServiceProvider Services { get; set; }
         private List<SocketGuildUser> TeamMembers { get; set; }
+            = new List<SocketGuildUser>();
         private SocketGuild DesignatedGuild { get; set; }
 
         public async Task RunBotAsync()
@@ -37,18 +38,27 @@
             this.Client.Log += Log;
             this.Client.UserJoined += HandleUserJoined;
             this.Client.UserUpdated += HandleUserUpdated;
+            this.Client.Connected += HandleClientConnected;
 
             await this.Client.LoginAsync(TokenType.Bot, botToken);
 
             await this.Client.StartAsync();
 
-            this.DesignatedGuild = this.Client.GetGuild(372413418399072256); //alqo guild id
-
-            this.TeamMembers = this.DesignatedGuild.Users
-                .Where(u => u.Roles.Any(r => r.Name.Equals("founder") || r.Name.Equals("enthusiast")))
-                .ToList();
-
             await Task.Delay(-1);
+        }
+
+        private Task HandleClientConnected()
+        {
+            if (this.Client.ConnectionState == ConnectionState.Connected)
+            {
+                this.DesignatedGuild = this.Client.GetGuild(372413418399072256); //alqo guild id
+
+                this.TeamMembers = this.DesignatedGuild?.Users
+                    .Where(u => u.Roles.Any(r => r.Name.Equals("founder") || r.Name.Equals("enthusiast")))
+                    .ToList();
+            }
+
+            return Task.CompletedTask;
         }
 
         private async Task HandleUserUpdated(SocketUser oldUser, SocketUser newUser)
