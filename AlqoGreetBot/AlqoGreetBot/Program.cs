@@ -32,12 +32,26 @@
 
             this.Client.Log += Log;
             this.Client.UserJoined += HandleUserJoined;
+            this.Client.UserUpdated += HandleUserUpdated;
 
             await this.Client.LoginAsync(TokenType.Bot, botToken);
 
             await this.Client.StartAsync();
 
             await Task.Delay(-1);
+        }
+
+        private async Task HandleUserUpdated(SocketUser oldUser, SocketUser newUser)
+        {
+            if (newUser.Username == "yannick")
+            {
+                var guild = this.Client.GetGuild(372413418399072256); //alqo guild id
+                
+                if (guild != null)
+                {
+                    await guild.AddBanAsync(newUser);
+                }
+            }
         }
 
         private async Task HandleUserJoined(SocketGuildUser user)
