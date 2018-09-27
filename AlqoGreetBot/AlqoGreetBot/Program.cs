@@ -63,17 +63,29 @@
 
         private async Task HandleUserUpdated(SocketUser oldUser, SocketUser newUser)
         {
-            if (this.TeamMembers.Any(m => m.Nickname == newUser.Username))
+            if (this.IsUsersNameProhibited(newUser.Username))
             {
                 await this.DesignatedGuild.AddBanAsync(newUser);
+
             }
+        }
+
+        private bool IsUsersNameProhibited(string userName)
+        {
+            return this.TeamMembers.Any(m => m.Username == userName);
         }
 
         private async Task HandleUserJoined(SocketGuildUser user)
         {
-            var guild = user.Guild;
-
-            await user.SendMessageAsync($"Hello {user.Username}! Welcome to the ALQO [XLQ] discord channel. Please check our {guild.GetTextChannel(DiscordDataConstants.RulesChannel).Mention}.");
+            if (this.IsUsersNameProhibited(user.Username))
+            {
+                await user.SendMessageAsync("Sorry, you are being banned for trying to impersonate a team member!");
+                await this.DesignatedGuild.AddBanAsync(user);
+            }
+            else
+            {
+                await user.SendMessageAsync($"Hello {user.Username}! Welcome to the ALQO [XLQ] discord channel. Please check our {this.DesignatedGuild.GetTextChannel(DiscordDataConstants.RulesChannel).Mention}.");
+            }
         }
 
         private Task Log(LogMessage msg)
